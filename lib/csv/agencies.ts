@@ -1,6 +1,7 @@
 import { parse } from 'csv-parse/sync'
 import { readFileSync } from 'fs'
 import { join } from 'path'
+import { Agency } from '@/data/types' // Import Agency interface
 
 export interface AgencyRow {
   [key: string]: string | number | null | undefined
@@ -47,6 +48,8 @@ function formatAgencyColumnHeader(key: string): string {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ')
 }
+
+let agenciesCache: Agency[] | null = null; // Cache to avoid re-reading CSV multiple times
 
 export function loadAgenciesCSV(): AgenciesTableData {
   try {
@@ -126,6 +129,28 @@ export function loadAgenciesCSV(): AgenciesTableData {
       }
     }).filter(column => column.hasData) // Only include columns with data
 
+    // Map processedRows to Agency interface for getAgencyById
+    agenciesCache = processedRows.map(row => ({
+      id: String(row.id || ''),
+      name: String(row.name || ''),
+      state: String(row.state || ''),
+      stateCode: String(row.state_code || ''),
+      type: String(row.type || ''),
+      population: typeof row.population === 'number' ? row.population : (row.population ? parseFloat(String(row.population)) : undefined),
+      website: String(row.website || ''),
+      phone: String(row.phone || ''),
+      status: String(row.status || ''),
+      county: String(row.county || ''),
+      createdAt: new Date(String(row.created_at || new Date())),
+      updatedAt: new Date(String(row.updated_at || new Date())),
+      
+      // Legacy/derived fields
+      contactPerson: undefined, // Not in CSV
+      email: undefined, // Not in CSV
+      address: row.mailing_address ? String(row.mailing_address) : (row.physical_address ? String(row.physical_address) : undefined)
+    }));
+
+
     return {
       columns,
       rows: processedRows,
@@ -136,4 +161,11 @@ export function loadAgenciesCSV(): AgenciesTableData {
     console.error('Error loading agencies CSV file:', error)
     return { columns: [], rows: [], totalRows: 0 }
   }
+}
+
+export async function getAgencyById(id: string): Promise<Agency | undefined> {
+  if (!agenciesCache) {
+    loadAgenciesCSV(); // Populate cache if not already done
+  }
+  return agenciesCache?.find(agency => agency.id === id);
 }

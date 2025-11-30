@@ -1,4 +1,4 @@
-# Agency & Contact Management System
+# Assignment
 
 A modern Next.js application built with TypeScript and Tailwind CSS for managing agencies and contacts. This project demonstrates a clean architecture with robust authentication using Clerk and direct CSV data loading.
 

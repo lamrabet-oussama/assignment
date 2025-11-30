@@ -49,8 +49,8 @@ export default async function ContactPage({ params }: ContactPageProps) {
             <div className="flex items-center mb-6">
               <div className="h-16 w-16 rounded-full bg-gray-300 flex items-center justify-center mr-4">
                 <span className="text-xl font-bold text-gray-700">
-                  {contact.first_name?.[0] || "C"}
-                  {contact.last_name?.[0] || "N"}
+                  {typeof contact.first_name === "string" ? contact.first_name[0] : "C"}
+                  {typeof contact.last_name === "string" ? contact.last_name[0] : "N"}
                 </span>
               </div>
               <div>

@@ -9,16 +9,9 @@ import { CheckCircleIcon } from "@heroicons/react/24/outline";
 export default function UpgradePage() {
   // const [showModal, setShowModal] = useState(false);
   // const [showSuccess, setShowSuccess] = useState(false);
-  const { count, limit, isLoading, refreshLimits } = useContactLimits();
+  const { count, limit, isLoading } = useContactLimits();
 
-  // useEffect(() => {
-  //   if (typeof window !== "undefined") {
-  //     window.confirmUpgrade = () => {
-  //       setShowModal(false);
-  //       setShowSuccess(true);
-  //     };
-  //   }
-  // }, []);
+
 
   // Disable upgrade functionality - do nothing
   const handleUpgrade = async () => {

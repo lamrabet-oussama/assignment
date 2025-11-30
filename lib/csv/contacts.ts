@@ -1,6 +1,7 @@
 import { parse } from 'csv-parse/sync';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { Contact } from '@/data/types'; // Import Contact interface
 
 export interface ContactRow {
   [key: string]: string | number | null | undefined;
@@ -47,6 +48,8 @@ function formatContactColumnHeader(key: string): string {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
 }
+
+let contactsCache: Contact[] | null = null; // Cache to avoid re-reading CSV multiple times
 
 export function loadContactsCSV(): ContactsTableData {
   try {
@@ -95,6 +98,22 @@ export function loadContactsCSV(): ContactsTableData {
       return row;
     });
 
+    // Map processedRows to Contact interface and cache
+    contactsCache = processedRows.map(row => ({
+      id: String(row.id || ''),
+      firstName: String(row.first_name || ''),
+      lastName: String(row.last_name || ''),
+      email: String(row.email || ''),
+      phone: String(row.phone || ''),
+      company: String(row.company || ''),
+      position: String(row.position || ''),
+      agencyId: String(row.agency_id || ''),
+      notes: String(row.notes || ''),
+      createdAt: new Date(String(row.created_at || new Date())),
+      updatedAt: new Date(String(row.updated_at || new Date())),
+    }));
+
+
     // Determine which columns have data
     const columns: ContactColumn[] = columnKeys.map(key => {
       const hasData = processedRows.some(row => {
@@ -119,4 +138,11 @@ export function loadContactsCSV(): ContactsTableData {
     console.error('Error loading contacts CSV file:', error);
     return { columns: [], rows: [], totalRows: 0 };
   }
+}
+
+export async function getContactsByAgencyId(agencyId: string): Promise<Contact[]> {
+  if (!contactsCache) {
+    loadContactsCSV(); // Populate cache if not already done
+  }
+  return contactsCache?.filter(contact => contact.agencyId === agencyId) || [];
 }

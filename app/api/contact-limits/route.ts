@@ -1,5 +1,5 @@
 import { getAuth, clerkClient, currentUser } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { DEFAULT_CONTACT_LIMIT } from "@/lib/constants";
 
 interface DailyLimitData {
@@ -18,7 +18,7 @@ const corsHeaders = {
 // ------------------------------
 //           GET HANDLER
 // ------------------------------
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const { userId } = getAuth(request);
 
@@ -83,7 +83,7 @@ export async function GET(request: Request) {
 // ------------------------------
 //           POST HANDLER
 // ------------------------------
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const { userId } = getAuth(request);
 
