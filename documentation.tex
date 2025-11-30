@@ -1,0 +1,96 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Documentation Technique Projet Next.js},
+    linkbordercolor={0 0 1},
+}
+
+\title{Documentation Technique du Projet Next.js}
+\author{Agent Gemini}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introduction}
+Ce document fournit une vue d'ensemble technique du projet Next.js actuel. Il est destiné à tout nouveau développeur souhaitant comprendre l'architecture, les fonctionnalités clés et les conventions du code. L'application est un tableau de bord (dashboard) permettant de visualiser et de gérer des données d'agences et de contacts, avec une gestion d'authentification robuste.
+
+\section*{Technologies Clés}
+Le projet utilise les technologies suivantes :
+\begin{itemize}
+    \item \textbf{Next.js} : Framework React pour la construction d'applications web full-stack, avec rendu côté serveur (SSR) et génération de sites statiques (SSG).
+    \item \textbf{React} : Bibliothèque JavaScript pour construire des interfaces utilisateur.
+    \item \textbf{TypeScript} : Sur-ensemble typé de JavaScript, améliorant la robustesse et la maintenabilité du code.
+    \item \textbf{Clerk} : Solution d'authentification et de gestion des utilisateurs pour les applications Next.js.
+    \item \textbf{Tailwind CSS} : Framework CSS utilitaire pour un stylisme rapide.
+    \item \textbf{PlantUML} : Utilisé pour générer des diagrammes architecturaux.
+\end{itemize}
+
+\section*{Structure du Projet}
+La structure du projet suit les conventions standard de Next.js, avec quelques dossiers clés :
+\begin{itemize}
+    \item \texttt{app/} : Contient les routes de l'application (pages et routes API).
+    \item \texttt{components/} : Composants React réutilisables, y compris les tables dynamiques.
+    \item \texttt{hooks/} : Hooks React personnalisés (e.g., pour la gestion des limites de contacts).
+    \item \texttt{lib/} : Fonctions utilitaires, constantes, et la couche d'accès aux données.
+    \item \texttt{data/} : Fichiers sources des données (CSV) et définitions de types.
+    \item \texttt{public/} : Assets statiques.
+\end{itemize}
+
+\section*{Authentification (Clerk)}
+L'authentification est gérée par Clerk.
+\begin{itemize}
+    \item \textbf{Middleware (\texttt{middleware.ts})} : Ce fichier est crucial. Il protège les routes de l'application. Pour toute route non publique, il vérifie l'authentification de l'utilisateur. Si l'utilisateur n'est pas connecté, il redirige vers la page de connexion pour les pages, ou renvoie un statut \texttt{401 Unauthorized} pour les routes API. Il gère également la redirection des utilisateurs connectés qui tentent d'accéder aux pages de connexion/inscription.
+    \item \textbf{Clés d'API} : Le fonctionnement de Clerk dépend des variables d'environnement \texttt{NEXT\_PUBLIC\_CLERK\_PUBLISHABLE\_KEY} et \texttt{CLERK\_SECRET\_KEY}, définies dans le fichier \texttt{.env.local}. La clé secrète est indispensable pour la validation des sessions côté serveur.
+\end{itemize}
+
+\section*{Flux de Données}
+L'application utilise directement des fichiers CSV comme source de données pour l'interface utilisateur. Il n'y a pas de processus de "seeding" vers des fichiers JSON pour l'exécution de l'application.
+
+\subsection*{Chargement des Données pour l'Interface Utilisateur}
+\begin{itemize}
+    \item \textbf{Fichiers CSV (\texttt{data/agencies.csv}, \texttt{data/contacts.csv})} : Contiennent les données brutes.
+    \item \textbf{Pour les Agences :} La page \texttt{app/dashboard/agencies/page.tsx} appelle \texttt{lib/csv/agencies.ts} (\texttt{loadAgenciesCSV}) pour lire et traiter les données directement depuis \texttt{data/agencies.csv} au moment du rendu côté serveur.
+    \item \textbf{Pour les Contacts :} La page \texttt{app/dashboard/contacts/page.tsx} appelle \texttt{lib/csv/contacts.ts} (\texttt{loadContactsCSV}) pour lire et traiter les données directement depuis \texttt{data/contacts.csv} au moment du rendu côté serveur.
+\end{itemize}
+
+\section*{Affichage des Tables}
+L'application utilise deux types de tables pour l'affichage des données :
+\begin{itemize}
+    \item \textbf{\texttt{components/DynamicTable.tsx}} : Utilisée pour les agences. Cette table est générique et reçoit un objet \texttt{initialData} (contenant les définitions de colonnes et les lignes) comme propriété. Les colonnes sont déterminées dynamiquement par les données fournies par \texttt{loadAgenciesCSV}, après avoir filtré les colonnes vides ou celles spécifiées dans une liste noire.
+    \item \textbf{\texttt{components/LimitedContactsTable.tsx}} : Utilisée pour les contacts. C'est un composant de table spécialisé avec un schéma de colonnes fixe et prédéfini directement dans son code JSX. Elle gère également l'affichage des limites de contacts et le suivi du décompte quotidien.
+\end{itemize}
+
+\section*{Routes API Principales}
+\begin{itemize}
+    \item \textbf{\texttt{app/api/contact-limits/route.ts}} : Gère la logique des limites de contacts. Il renvoie une limite fixe (\texttt{DEFAULT\_CONTACT\_LIMIT}) pour tous les utilisateurs et met à jour le décompte quotidien des contacts vus par l'utilisateur dans les métadonnées Clerk.
+    \item \textbf{\texttt{app/api/user-subscription/route.ts}} : Ce fichier a été supprimé car la fonctionnalité d'abonnement a été retirée du projet.
+\end{itemize}
+
+\section*{Fonctionnalité d'Upgrade (Désactivée)}
+La fonctionnalité "Upgrade" a été désactivée. Le bouton "Upgrade Now" sur la page \texttt{/dashboard/upgrade} est visible mais ne déclenche aucune action lors du clic. La logique d'abonnement et de plans a été entièrement retirée de l'application.
+
+\section*{Diagramme Architectural du Flux de Données}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{./data_flow_diagram.png} % Le chemin vers votre image du diagramme PlantUML
+    \caption{Diagramme du Flux de Données CSV vers les Pages UI}
+    \label{fig:data_flow_diagram}
+\end{figure}
+\textit{Insérez ici l'image générée à partir du code PlantUML fourni dans \texttt{data\_flow\_diagram.txt}. Vous devrez compiler le code PlantUML en une image (par exemple, PNG ou SVG) et la placer dans le même dossier que ce fichier LaTeX, ou ajuster le chemin si nécessaire.}
+
+\section*{Conclusion}
+Cette documentation fournit les informations nécessaires pour un développeur souhaitant s'intégrer au projet. La compréhension des mécanismes d'authentification Clerk, du chargement direct des données CSV et de la gestion des limites est fondamentale.
+
+\end{document}

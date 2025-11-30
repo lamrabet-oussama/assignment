@@ -1,0 +1,71 @@
+@startuml
+!theme plain
+
+title Data Flow: CSV Files to UI Pages (Agencies and Contacts)
+
+package "CSV Sources" {
+  file "data/agencies.csv" as CsvAgenciesSource
+  file "data/contacts.csv" as CsvContactsSource
+}
+
+package "Backend (Next.js Server-Side Data Loading)" {
+  component "lib/csv/agencies.ts\n(loadAgenciesCSV)" as CsvAgenciesLoader
+  component "lib/csv/contacts.ts\n(loadContactsCSV)" as CsvContactsLoader
+  rectangle "app/dashboard/agencies/page.tsx" as AgenciesPage
+  rectangle "app/dashboard/contacts/page.tsx" as ContactsPage
+}
+
+package "Frontend (Client-Side Rendering)" {
+  component "components/DynamicTable.tsx" as DynamicTableComponent
+  component "components/LimitedContactsTable.tsx" as LimitedContactsTableComponent
+  actor "User Interface (Browser)" as UserUI
+}
+
+' Agencies Flow
+CsvAgenciesSource -[#red]-> CsvAgenciesLoader : reads (fs.readFileSync)
+CsvAgenciesLoader -[#blue]-> AgenciesPage : returns processed data ({columns, rows})
+AgenciesPage -[#green]-> DynamicTableComponent : passes initialData prop
+DynamicTableComponent -[#purple]-> UserUI : renders Agencies table
+
+' Contacts Flow
+CsvContactsSource -[#red]-> CsvContactsLoader : reads (fs.readFileSync)
+CsvContactsLoader -[#blue]-> ContactsPage : returns processed data (contacts array)
+ContactsPage -[#green]-> LimitedContactsTableComponent : passes contacts prop
+LimitedContactsTableComponent -[#purple]-> UserUI : renders Contacts table (fixed schema)
+
+
+' Clarifications/Details
+note right of AgenciesPage
+  Server Component
+  Fetches Agencies data
+  during server-side render.
+end note
+
+note right of ContactsPage
+  Server Component
+  Fetches Contacts data
+  during server-side render.
+end note
+
+note right of CsvAgenciesLoader
+  Parses agencies CSV, cleans values,
+  formats headers, filters blacklisted/empty columns.
+end note
+
+note right of CsvContactsLoader
+  Parses contacts CSV, cleans values,
+  formats headers, filters empty columns.
+end note
+
+note right of DynamicTableComponent
+  Renders filterable, sortable
+  and paginated table from props (dynamic columns).
+end note
+
+note right of LimitedContactsTableComponent
+  Renders filterable, paginated table
+  with a hardcoded, fixed schema.
+  Manages contact view limits.
+end note
+
+@enduml
