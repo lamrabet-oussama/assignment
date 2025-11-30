@@ -21,9 +21,7 @@ app/
 ├── (dashboard)/              # Protected dashboard routes group
 │   ├── layout.tsx           # Dashboard layout with sidebar
 │   ├── agencies/
-│   │   ├── page.tsx         # Agencies list page
-│   │   └── [id]/
-│   │       └── page.tsx     # Individual agency page
+│   │   └── page.tsx         # Agencies list page
 │   └── contacts/
 │       ├── page.tsx         # Contacts list page
 │       └── [id]/
